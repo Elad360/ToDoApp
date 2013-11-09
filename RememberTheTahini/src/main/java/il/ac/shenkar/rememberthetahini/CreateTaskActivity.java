@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 public class CreateTaskActivity extends Activity
@@ -29,6 +31,18 @@ public class CreateTaskActivity extends Activity
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void createNewTask(View view)
+    {
+        EditText editText = (EditText) findViewById(R.id.edit_message);
+        String taskName = editText.getText().toString();
+        if (taskName != null)
+        {
+            Intent intent = new Intent(this, ListViewTasksActivity.class);
+            TaskListManager.getInstance().addNewTask(taskName);
+            startActivity(intent);
+        }
     }
 
 

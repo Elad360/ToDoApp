@@ -10,6 +10,7 @@
         android:text="@string/button_add_task"
         android:onClick="addTask" />
     <ListView
+        android:id="@+id/listV_main"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content" android:id="@+id/listV_main"/>
+        android:layout_width="fill_parent" />
 </LinearLayout>
