@@ -11,28 +11,37 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
-public class ItemListBaseAdapter extends BaseAdapter {
-    private static ArrayList<TaskDetails> taskDetailsArrayList;
-
+public class ItemListBaseAdapter extends BaseAdapter
+{
     private LayoutInflater l_Inflater;
+    private Context m_context;
+    private TaskListModel m_taskListModel;
 
-    public ItemListBaseAdapter(Context context, ArrayList<TaskDetails> results) {
-        taskDetailsArrayList = results;
+    public ItemListBaseAdapter(Context context)
+    {
+        m_context = context;
+        m_taskListModel = TaskListModel.getInstance(context);
         l_Inflater = LayoutInflater.from(context);
     }
 
+    @Override
     public int getCount() {
-        return taskDetailsArrayList.size();
+        return m_taskListModel.getCount();
     }
 
-    public Object getItem(int position) {
-        return taskDetailsArrayList.get(position);
+    @Override
+    public Object getItem(int position)
+    {
+        return m_taskListModel.getTask(position);
     }
 
-    public long getItemId(int position) {
-        return position;
+    @Override
+    public long getItemId(int position)
+    {
+        return m_taskListModel.getTask(position).getId();
     }
 
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null)
@@ -49,7 +58,7 @@ public class ItemListBaseAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.txt_task_name.setText(taskDetailsArrayList.get(position).getName());
+        holder.txt_task_name.setText(m_taskListModel.getTask(position).getName());
         return convertView;
     }
 

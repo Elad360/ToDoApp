@@ -5,13 +5,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class CreateTaskActivity extends Activity
 {
+
+    private TaskListModel taskListModel;
 
     @SuppressLint("NewApi")
     @Override
@@ -19,6 +19,7 @@ public class CreateTaskActivity extends Activity
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_task);
+        taskListModel = TaskListModel.getInstance(this);
     }
 
     @Override
@@ -40,7 +41,7 @@ public class CreateTaskActivity extends Activity
         if (taskName != null)
         {
             Intent intent = new Intent(this, ListViewTasksActivity.class);
-            TaskListManager.getInstance().addNewTask(taskName);
+            taskListModel.addNewTask(taskName);
             startActivity(intent);
         }
     }
