@@ -15,6 +15,5 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/button_done"
-        android:layout_toRightOf="@id/task_name"
-        android:onClick="removeTask"/>
+        android:layout_toRightOf="@id/task_name"/>
 </LinearLayout>

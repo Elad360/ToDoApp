@@ -1,71 +1,101 @@
 package il.ac.shenkar.rememberthetahini;
 
-import java.util.ArrayList;
-
-
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.TextView;
+import android.widget.*;
+
 
 public class ItemListBaseAdapter extends BaseAdapter
 {
-    private LayoutInflater l_Inflater;
-    private Context m_context;
-    private TaskListModel m_taskListModel;
 
-    public ItemListBaseAdapter(Context context)
+    private String TAG = "RTT_TaskListAdapter";
+
+    private Context context;
+    private LayoutInflater inflater;
+    private TaskListModel taskListModel;
+
+    public ItemListBaseAdapter(android.content.Context context)
     {
-        m_context = context;
-        m_taskListModel = TaskListModel.getInstance(context);
-        l_Inflater = LayoutInflater.from(context);
+        this.context = context;
+        this.taskListModel = TaskListModel.getInstance(context);
+        this.inflater = LayoutInflater.from(context);
     }
 
     @Override
-    public int getCount() {
-        return m_taskListModel.getCount();
-    }
-
-    @Override
-    public Object getItem(int position)
+    public int getCount()
     {
-        return m_taskListModel.getTask(position);
+        return taskListModel.getCount();
     }
 
     @Override
-    public long getItemId(int position)
+    public boolean isEmpty()
     {
-        return m_taskListModel.getTask(position).getId();
+        return taskListModel.isEmpty();
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-        if (convertView == null)
+    public Task getItem(int i)
+    {
+        return taskListModel.getItem(i);
+    }
+
+    @Override
+    public long getItemId(int i)
+    {
+        return getItem(i).getId();
+    }
+
+    @Override
+    public boolean hasStableIds ()
+    {
+        return true;
+    }
+
+    private final View.OnClickListener doneButtonOnClickListener = new View.OnClickListener()
+    {
+        @Override
+        public void onClick(View view)
         {
-            convertView = l_Inflater.inflate(R.layout.item_details_view, null);
-            holder = new ViewHolder();
-            holder.txt_task_name = (TextView) convertView.findViewById(R.id.task_name);
-            holder.button_task_done = (Button) convertView.findViewById(R.id.b_done);
+            int position = (Integer) view.getTag();
+            Log.d(TAG, "Removing task : " + getItem(position).getDescription());
+            taskListModel.removeTask(getItem(position));
+            notifyDataSetChanged();
+        }
+    };
 
+    @Override
+    public View getView (int position, View convertView, ViewGroup parent)
+    {
+        TaskRowViewHolder holder;
+
+        if (convertView==null)
+        {
+            convertView = this.inflater.inflate(R.layout.item_details_view, null);
+            holder = new TaskRowViewHolder();
+            holder.descriptionTextView = (TextView) convertView.findViewById(R.id.task_name);
+            holder.doneButton = (Button) convertView.findViewById(R.id.b_done);
+            holder.doneButton.setOnClickListener(doneButtonOnClickListener);
             convertView.setTag(holder);
         }
         else
         {
-            holder = (ViewHolder) convertView.getTag();
+            holder = (TaskRowViewHolder) convertView.getTag();
         }
 
-        holder.txt_task_name.setText(m_taskListModel.getTask(position).getName());
+        holder.descriptionTextView.setText(getItem(position).getDescription());
+        holder.doneButton.setTag(position);
+
         return convertView;
     }
 
-    static class ViewHolder
+    static class TaskRowViewHolder
     {
-        TextView txt_task_name;
-        Button button_task_done;
+        TextView descriptionTextView;
+        Button doneButton;
     }
-}
 
+
+}

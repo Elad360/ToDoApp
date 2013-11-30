@@ -2,15 +2,19 @@ package il.ac.shenkar.rememberthetahini;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.Cursor;
 
 import java.util.ArrayList;
 
+
 public class TaskListModel extends SQLiteOpenHelper
 {
-
+    private static final int FAKE_NUMBER = 20;
+    private static TaskListModel instance = null;
+    private ArrayList<Task> tasks;
+    private Context context;
     // All Static variables
     // Database Version
     private static final int DATABASE_VERSION = 1;
@@ -23,19 +27,24 @@ public class TaskListModel extends SQLiteOpenHelper
     private static final String KEY_ID = "id";
     private static final String KEY_NAME = "name";
 
-    private static TaskListModel instance = null;
-
-
+    //Private Constructor. Enforces singleton.
     private TaskListModel(Context context)
     {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
-
-//        for (int i = 1; i <= 10; i++)
-//        {
-//            this.addNewTask("TASK " + i + ": DO SOMETHING GOOD");
-//        }
-
+        this.context = context;
+        tasks = getTasks();
     }
+
+    //Public accessor for the class
+    public synchronized static TaskListModel getInstance(Context context)
+    {
+        if (instance==null)
+        {
+            instance = new TaskListModel(context);
+        }
+        return instance;
+    }
+
 
     // Creating Tables
     @Override
@@ -46,59 +55,64 @@ public class TaskListModel extends SQLiteOpenHelper
         db.execSQL(CREATE_CONTACTS_TABLE);
     }
 
+
     // Upgrading database
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
     {
-        // Drop older table if existed
+//      Drop older table if existed
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TASKS);
 
-        // Create tables again
+//      Create tables again
         onCreate(db);
     }
 
-    public static synchronized TaskListModel getInstance(Context context)
+
+    //Add new task
+    public void pushTask(String description)
     {
-        if(instance == null)
-        {
-            instance = new TaskListModel(context);
-        }
-        return instance;
+        tasks.add(new Task(System.currentTimeMillis(), description));
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(KEY_ID,System.currentTimeMillis());
+        values.put(KEY_NAME, description);
+
+        // Inserting Row
+        db.insert(TABLE_TASKS, null, values);
+        db.close(); // Closing database connection
+    }
+
+    //Remove any task
+    public void removeTask(Task taskToRemove)
+    {
+        tasks.remove(taskToRemove);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_TASKS, KEY_ID + " = ?", new String[] { String.valueOf(taskToRemove.getId()) });
+        db.close();
     }
 
     public int getCount()
     {
-        String countQuery = "SELECT  * FROM " + TABLE_TASKS;
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(countQuery, null);
-        cursor.close();
-
-        return cursor.getCount();
-
-        //return m_taskList.size();
+        return tasks.size();
     }
 
-
-    public TaskDetails getTask(int id)
+    public boolean isEmpty()
     {
-        SQLiteDatabase db = this.getReadableDatabase();
+        return tasks.isEmpty();
+    }
 
-        Cursor cursor = db.query(TABLE_TASKS, new String[] { KEY_ID, KEY_NAME }, KEY_ID + "=?",
-                new String[] { String.valueOf(id) }, null, null, null, null);
-        if (cursor != null)
-            cursor.moveToFirst();
+    //Get items from new to old
+    public Task getItem(int i)
+    {
+       return tasks.get(tasks.size()-i-1);
+    }
 
-        TaskDetails task = new TaskDetails(Integer.parseInt(cursor.getString(0)), cursor.getString(1));
-        return task;
-
-//        return m_taskList.get(position);
-}
-
-
-    public ArrayList<TaskDetails> getTasks()
+    public ArrayList<Task> getTasks()
     {
         // Getting all tasks
-        ArrayList<TaskDetails> taskList = new ArrayList<TaskDetails>();
+        ArrayList<Task> taskList = new ArrayList<Task>();
         // Select All Query
         String selectQuery = "SELECT  * FROM " + TABLE_TASKS;
 
@@ -110,8 +124,8 @@ public class TaskListModel extends SQLiteOpenHelper
         {
             do
             {
-                TaskDetails task = new TaskDetails(Integer.parseInt(cursor.getString(0)),cursor.getString(1));
-                // Adding contact to list
+                Task task = new Task(Long.parseLong(cursor.getString(0)),cursor.getString(1));
+                // Adding task to list
                 taskList.add(task);
             } while (cursor.moveToNext());
         }
@@ -119,41 +133,5 @@ public class TaskListModel extends SQLiteOpenHelper
         return taskList;
     }
 
-
-    public  void addNewTask(String taskName)
-    {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, taskName); // Contact Name
-
-        // Inserting Row
-        db.insert(TABLE_TASKS, null, values);
-        db.close(); // Closing database connection
-
-//        TaskDetails item_details = new TaskDetails(System.currentTimeMillis(), taskName);
-//        item_details.setName(taskName);
-//        m_taskList.add(0,item_details);
-    }
-
-    public  void removeTask(TaskDetails taskToRemove)
-    {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_TASKS, KEY_ID + " = ?", new String[] { String.valueOf(taskToRemove.getId()) });
-        db.close();
-
-        //m_taskList.remove(taskToRemove);
-    }
-
-    // Updating single task
-    public int updateTask(TaskDetails task)
-    {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, task.getName());
-
-        // Updating row
-        return db.update(TABLE_TASKS, values, KEY_ID + " = ?",
-                new String[] { String.valueOf(task.getId()) });
-    }
 }
+
